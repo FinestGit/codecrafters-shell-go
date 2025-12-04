@@ -13,9 +13,10 @@ const (
 	echoCommand = "echo"
 	exitCommand = "exit"
 	typeCommand = "type"
+	pwdCommand  = "pwd"
 )
 
-var availableCommands = map[string]struct{}{exitCommand: {}, echoCommand: {}, typeCommand: {}}
+var availableCommands = map[string]struct{}{exitCommand: {}, echoCommand: {}, typeCommand: {}, pwdCommand: {}}
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Print
@@ -50,6 +51,8 @@ func handleCommand(commandString string) {
 		handleEcho(additionalArgs)
 	case "type":
 		handleType(additionalArgs)
+	case "pwd":
+		handlePwd()
 	default:
 		attemptExecutable(command, additionalArgs)
 	}
@@ -123,4 +126,12 @@ func attemptExecutable(executable string, args []string) {
 	}
 
 	fmt.Print(string(stdout))
+}
+
+func handlePwd() {
+	dir, err := os.Getwd()
+	if err != nil {
+		return
+	}
+	fmt.Println(dir)
 }
