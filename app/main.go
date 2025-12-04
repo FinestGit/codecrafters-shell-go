@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -71,29 +72,32 @@ func handleType(args []string) {
 	if isCommandBuiltin(command) {
 		fmt.Printf("%s is a shell builtin\n", command)
 	} else {
-		fmt.Printf("%s", searchPath(command))
+		searchPath(command)
 	}
 }
 
-func searchPath(commandToFind string) string {
+func searchPath(commandToFind string) {
 	path := os.Getenv("PATH")
 	paths := strings.Split(path, ":")
 	for _, dir := range paths {
-		entries, _ := os.ReadDir(dir)
-		for _, entry := range entries {
-			if entry.Name() == commandToFind {
-				location := dir + "/" + entry.Name()
-				info, err := os.Stat(location)
-				if err != nil {
-					continue
-				}
-				mode := info.Mode()
+		filepath := filepath.Join(dir, commandToFind)
 
-				if mode&os.ModePerm&0100 != 0 {
-					return fmt.Sprintf("%s is %s\n", commandToFind, location)
-				}
-			}
+		info, err := os.Stat(filepath)
+
+		if err != nil {
+			continue
 		}
+
+		if info.IsDir() {
+			continue
+		}
+
+		if info.Mode()&0111 == 0 {
+			continue
+		}
+
+		fmt.Printf("%s is %s\n", commandToFind, filepath)
+		return
 	}
-	return fmt.Sprintf("%s: not found\n", commandToFind)
+	fmt.Printf("%s: not found\n", commandToFind)
 }
