@@ -69,6 +69,6 @@ func handleType(args []string) {
 	if isCommandBuiltin(command) {
 		fmt.Printf("%s is a shell builtin\n", command)
 	} else {
-		fmt.Printf("%s: command not found\n", command)
+		fmt.Printf("%s: not found\n", command)
 	}
 }
