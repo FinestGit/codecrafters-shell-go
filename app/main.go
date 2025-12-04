@@ -7,7 +7,13 @@ import (
 	"strings"
 )
 
-var commandTypes []string = []string{"exit", "echo", "type"}
+const (
+	echoCommand = "echo"
+	exitCommand = "exit"
+	typeCommand = "type"
+)
+
+var availableCommands = map[string]struct{}{exitCommand: {}, echoCommand: {}, typeCommand: {}}
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Print
@@ -48,12 +54,8 @@ func handleCommand(commandString string) {
 }
 
 func isCommandBuiltin(command string) bool {
-	for _, cmd := range commandTypes {
-		if cmd == command {
-			return true
-		}
-	}
-	return false
+	_, exists := availableCommands[command]
+	return exists
 }
 
 func handleEcho(args []string) {
