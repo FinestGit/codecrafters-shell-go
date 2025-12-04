@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -50,7 +51,7 @@ func handleCommand(commandString string) {
 	case "type":
 		handleType(additionalArgs)
 	default:
-		fmt.Println(command + ": command not found")
+		attemptExecutable(command, additionalArgs)
 	}
 }
 
@@ -72,11 +73,16 @@ func handleType(args []string) {
 	if isCommandBuiltin(command) {
 		fmt.Printf("%s is a shell builtin\n", command)
 	} else {
-		searchPath(command)
+		found, path := searchPath(command)
+		if !found {
+			fmt.Printf("%s: not found\n", command)
+			return
+		}
+		fmt.Printf("%s is %s\n", command, path)
 	}
 }
 
-func searchPath(commandToFind string) {
+func searchPath(commandToFind string) (bool, string) {
 	path := os.Getenv("PATH")
 	paths := strings.Split(path, ":")
 	for _, dir := range paths {
@@ -96,8 +102,25 @@ func searchPath(commandToFind string) {
 			continue
 		}
 
-		fmt.Printf("%s is %s\n", commandToFind, filepath)
+		return true, filepath
+	}
+	return false, ""
+}
+
+func attemptExecutable(executable string, args []string) {
+	found, path := searchPath(executable)
+	if !found {
+		fmt.Println(executable + ": command not found")
 		return
 	}
-	fmt.Printf("%s: not found\n", commandToFind)
+	cmd := exec.Command(path, args...)
+	cmd.Args[0] = executable
+	stdout, err := cmd.Output()
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error executing command:", err)
+		return
+	}
+
+	fmt.Print(string(stdout))
 }
