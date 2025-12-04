@@ -14,9 +14,10 @@ const (
 	exitCommand = "exit"
 	typeCommand = "type"
 	pwdCommand  = "pwd"
+	cdCommmand  = "cd"
 )
 
-var availableCommands = map[string]struct{}{exitCommand: {}, echoCommand: {}, typeCommand: {}, pwdCommand: {}}
+var availableCommands = map[string]struct{}{exitCommand: {}, echoCommand: {}, typeCommand: {}, pwdCommand: {}, cdCommmand: {}}
 
 // Ensures gofmt doesn't remove the "fmt" import in stage 1 (feel free to remove this!)
 var _ = fmt.Print
@@ -53,6 +54,11 @@ func handleCommand(commandString string) {
 		handleType(additionalArgs)
 	case "pwd":
 		handlePwd()
+	case "cd":
+		if len(additionalArgs) == 0 {
+			return
+		}
+		handleCd(additionalArgs[0])
 	default:
 		attemptExecutable(command, additionalArgs)
 	}
@@ -134,4 +140,11 @@ func handlePwd() {
 		return
 	}
 	fmt.Println(dir)
+}
+
+func handleCd(targetDir string) {
+	err := os.Chdir(targetDir)
+	if err != nil {
+		fmt.Printf("cd: %s: No such file or directory\n", targetDir)
+	}
 }
