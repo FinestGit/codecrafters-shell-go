@@ -71,6 +71,29 @@ func handleType(args []string) {
 	if isCommandBuiltin(command) {
 		fmt.Printf("%s is a shell builtin\n", command)
 	} else {
-		fmt.Printf("%s: not found\n", command)
+		fmt.Printf("%s", searchPath(command))
 	}
+}
+
+func searchPath(commandToFind string) string {
+	path := os.Getenv("PATH")
+	paths := strings.Split(path, ":")
+	for _, dir := range paths {
+		entries, _ := os.ReadDir(dir)
+		for _, entry := range entries {
+			if entry.Name() == commandToFind {
+				location := dir + "/" + entry.Name()
+				info, err := os.Stat(location)
+				if err != nil {
+					continue
+				}
+				mode := info.Mode()
+
+				if mode&os.ModePerm&0100 != 0 {
+					return fmt.Sprintf("%s is %s\n", commandToFind, location)
+				}
+			}
+		}
+	}
+	return fmt.Sprintf("%s: not found\n", commandToFind)
 }
