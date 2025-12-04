@@ -143,6 +143,13 @@ func handlePwd() {
 }
 
 func handleCd(targetDir string) {
+	if targetDir == "~" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return
+		}
+		targetDir = homeDir
+	}
 	err := os.Chdir(targetDir)
 	if err != nil {
 		fmt.Printf("cd: %s: No such file or directory\n", targetDir)
